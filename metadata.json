@@ -1,0 +1,6 @@
+{
+  "name": "Hakken Intelligence",
+  "description": "Document and image OCR text extraction and keyword search platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
