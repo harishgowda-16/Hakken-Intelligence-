@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Image as ImageIcon, Search, ArrowRight, Cpu, FileSearch } from 'lucide-react';
-import axios from 'axios';
 import { FileRecord, StatsOverview } from '../types';
 import { WebGLShader } from '../components/WebGLShader';
 import { useAuth } from '../context/AuthContext';
 import { listUserFiles } from '../services/userFiles';
 import { LiquidGlassButton } from '../components/LiquidGlassButton';
+import { api } from '../services/api';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export const HomePage: React.FC = () => {
       return;
     }
 
-    axios
+    api
       .get<StatsOverview>('/api/stats')
       .then((res) => setStats(res.data))
       .catch((err) => console.error('Failed to fetch stats:', err));

@@ -10,10 +10,24 @@ import { createServer as createViteServer } from 'vite';
 import { FileRecord, SearchResult, StatsOverview } from './src/types.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 const isProductionServer =
   process.env.NODE_ENV === 'production' ||
   path.basename(path.dirname(process.argv[1] || '')) === 'dist';
+const configuredOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+]
+  .flatMap((value) => (value || '').split(','))
+  .map((value) => value.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
+const allowedOrigins = new Set([...defaultAllowedOrigins, ...configuredOrigins]);
 
 // Directories setup
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
@@ -168,6 +182,25 @@ const upload = multer({
 });
 
 // Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin?.replace(/\/+$/, '');
+
+  if (!origin || allowedOrigins.has(origin)) {
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+
+  next();
+});
 app.use(express.json());
 
 // Helper: PDF Page-by-page text extraction

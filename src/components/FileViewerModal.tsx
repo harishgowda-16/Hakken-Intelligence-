@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ExternalLink, FileText, Image as ImageIcon, Eye, FileSearch, Copy, Check } from 'lucide-react';
 import { SearchResult } from '../types';
+import { apiUrl } from '../services/api';
 
 interface FileViewerModalProps {
   result: SearchResult | null;
@@ -17,6 +18,7 @@ export const FileViewerModal: React.FC<FileViewerModalProps> = ({
 
   const [activeTab, setActiveTab] = useState<'preview' | 'text'>('preview');
   const [copied, setCopied] = useState<boolean>(false);
+  const viewUrl = result.viewUrl.startsWith('http') ? result.viewUrl : apiUrl(result.viewUrl);
 
   const handleCopy = () => {
     const text = result.fullPageText || result.matchingText;
@@ -119,7 +121,7 @@ export const FileViewerModal: React.FC<FileViewerModalProps> = ({
             </div>
 
             <a
-              href={result.viewUrl}
+              href={viewUrl}
               target="_blank"
               rel="noreferrer"
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-zinc-100 dark:hover:text-zinc-200 bg-slate-100 dark:bg-slate-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors border border-slate-200 dark:border-slate-700 flex items-center space-x-1"
@@ -158,7 +160,7 @@ export const FileViewerModal: React.FC<FileViewerModalProps> = ({
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                     <a
-                      href={result.viewUrl}
+                      href={viewUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs sm:text-sm flex items-center space-x-2 shadow-lg shadow-zinc-900/30 hover:scale-105 transition-all"
@@ -178,7 +180,7 @@ export const FileViewerModal: React.FC<FileViewerModalProps> = ({
               ) : (
                 <div className="w-full h-full p-4 flex items-center justify-center overflow-auto bg-slate-50 dark:bg-slate-950">
                   <img
-                    src={result.viewUrl}
+                    src={viewUrl}
                     alt={result.fileName}
                     className="max-h-full max-w-full object-contain rounded-lg border border-slate-200 dark:border-slate-800 shadow-md"
                   />

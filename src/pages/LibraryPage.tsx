@@ -12,11 +12,11 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import axios from 'axios';
 import { FileRecord } from '../types';
 import { FileViewerModal } from '../components/FileViewerModal';
 import { useAuth } from '../context/AuthContext';
 import { deleteUserFile, listUserFiles } from '../services/userFiles';
+import { api, apiUrl } from '../services/api';
 
 export const LibraryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export const LibraryPage: React.FC = () => {
     if (!user) return;
     try {
       await deleteUserFile(user.uid, id);
-      await axios.delete(`/api/files/${id}`);
+      await api.delete(`/api/files/${id}`);
       setFiles((prev) => prev.filter((file) => file.id !== id));
     } catch (err) {
       console.error('Delete error:', err);
@@ -59,7 +59,7 @@ export const LibraryPage: React.FC = () => {
 
   const handleInspectFile = async (fileId: string) => {
     try {
-      const res = await axios.get<FileRecord>(`/api/files/${fileId}`);
+      const res = await api.get<FileRecord>(`/api/files/${fileId}`);
       const file = res.data;
       const fullText = file.pages?.map((page) => `--- Page ${page.pageNumber} ---\n${page.text}`).join('\n\n') || '';
 
@@ -75,8 +75,8 @@ export const LibraryPage: React.FC = () => {
         matchCount: 1,
         uploadDate: file.uploadDate,
         fileSize: file.fileSize,
-        viewUrl: `/api/files/${file.id}/view`,
-        downloadUrl: `/api/files/${file.id}/download`,
+        viewUrl: apiUrl(`/api/files/${file.id}/view`),
+        downloadUrl: apiUrl(`/api/files/${file.id}/download`),
       });
     } catch (err) {
       console.error('Failed to inspect file:', err);

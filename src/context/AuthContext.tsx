@@ -1,16 +1,21 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
-  User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   signInWithPopup,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, isFirebaseConfigured } from '../firebase';
+
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  getIdToken: () => Promise<string>;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
@@ -20,11 +25,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const createLocalUser = (email = 'local@hakken.dev'): AppUser => ({
+  uid: 'local-user',
+  email,
+  getIdToken: async () => 'local-dev-token',
+});
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<AppUser | null>(() =>
+    isFirebaseConfigured ? null : createLocalUser(),
+  );
+  const [loading, setLoading] = useState<boolean>(isFirebaseConfigured);
 
   useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
@@ -33,18 +51,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signInWithEmail = async (email: string, password: string) => {
+    if (!isFirebaseConfigured || !auth) {
+      setUser(createLocalUser(email));
+      return;
+    }
+
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
+    if (!isFirebaseConfigured || !auth) {
+      setUser(createLocalUser(email));
+      return;
+    }
+
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
   const signInWithGoogle = async () => {
+    if (!isFirebaseConfigured || !auth || !googleProvider) {
+      setUser(createLocalUser());
+      return;
+    }
+
     await signInWithPopup(auth, googleProvider);
   };
 
   const signOut = async () => {
+    if (!isFirebaseConfigured || !auth) {
+      setUser(null);
+      return;
+    }
+
     await firebaseSignOut(auth);
   };
 

@@ -1,16 +1,17 @@
 {
-  "name": "react-example",
+  "name": "hakken-intelligence-backend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
+    "dev:frontend": "vite --config ../frontend/vite.config.ts",
+    "build:frontend": "vite build --config ../frontend/vite.config.ts",
+    "build:backend": "esbuild server.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=dist/server.js",
     "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "vite build",
-    "build:backend": "esbuild ./server.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=dist/server.js",
     "start": "node dist/server.js",
-    "clean": "rm -rf dist uploads",
-    "lint": "tsc --noEmit"
+    "clean": "rm -rf dist ../frontend/dist uploads",
+    "lint": "tsc --noEmit -p ../frontend/tsconfig.json"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

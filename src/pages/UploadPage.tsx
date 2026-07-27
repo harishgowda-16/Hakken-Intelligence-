@@ -12,10 +12,10 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import axios from 'axios';
 import { FileRecord } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { deleteUserFile, listUserFiles, saveUserFiles } from '../services/userFiles';
+import { api, apiUrl } from '../services/api';
 
 export const UploadPage: React.FC = () => {
   const navigate = useNavigate();
@@ -89,7 +89,7 @@ export const UploadPage: React.FC = () => {
       selectedFiles.forEach((file) => formData.append('files', file));
 
       const token = await user.getIdToken();
-      const response = await axios.post<{ records: FileRecord[] }>('/api/upload', formData, {
+      const response = await api.post<{ records: FileRecord[] }>('/api/upload', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -114,7 +114,7 @@ export const UploadPage: React.FC = () => {
     if (!user) return;
     try {
       await deleteUserFile(user.uid, id);
-      await axios.delete(`/api/files/${id}`);
+      await api.delete(`/api/files/${id}`);
       setRecentFiles((prev) => prev.filter((file) => file.id !== id));
     } catch (err) {
       console.error('Failed to delete file:', err);
@@ -290,7 +290,7 @@ export const UploadPage: React.FC = () => {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <a
-                      href={`/api/files/${file.id}/view`}
+                      href={apiUrl(`/api/files/${file.id}/view`)}
                       target="_blank"
                       rel="noreferrer"
                       className="h-9 px-3 rounded-lg bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 text-xs font-semibold flex items-center gap-1.5"

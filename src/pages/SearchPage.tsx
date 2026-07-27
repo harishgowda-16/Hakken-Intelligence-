@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, FileText, Image as ImageIcon, Eye, Loader2, Sparkles, Filter, Tag, Copy, Check, FileSearch, Trash2 } from 'lucide-react';
-import axios from 'axios';
 import { FileRecord, SearchResult } from '../types';
 import { FileViewerModal } from '../components/FileViewerModal';
 import { useAuth } from '../context/AuthContext';
 import { deleteUserFile, listUserFiles } from '../services/userFiles';
+import { api } from '../services/api';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +43,7 @@ export const SearchPage: React.FC = () => {
     if (!user) return;
     try {
       await deleteUserFile(user.uid, fileId);
-      await axios.delete(`/api/files/${fileId}`);
+      await api.delete(`/api/files/${fileId}`);
       setUserFiles((prev) => prev.filter((file) => file.id !== fileId));
       setResults((prev) =>
         prev.filter((r) => r.fileId !== fileId && r.id !== fileId && !r.id.includes(fileId))
@@ -98,7 +98,7 @@ export const SearchPage: React.FC = () => {
     setHasSearched(true);
 
     try {
-      const res = await axios.get<SearchResult[]>('/api/search', {
+      const res = await api.get<SearchResult[]>('/api/search', {
         params: {
           q: trimmed,
           ids: fileIds.join(','),
