@@ -3,8 +3,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  signInWithPopup,
+  getRedirectResult,
   onAuthStateChanged,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../firebase';
 
@@ -30,10 +31,13 @@ const createLocalUser = (email = 'local@hakken.dev'): AppUser => ({
   email,
   getIdToken: async () => 'local-dev-token',
 });
+const canUseLocalAuth = import.meta.env.DEV;
+const firebaseSetupError =
+  'Firebase is not configured for this build. Add the VITE_FIREBASE_* variables in Vercel, then redeploy.';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(() =>
-    isFirebaseConfigured ? null : createLocalUser(),
+    isFirebaseConfigured ? null : canUseLocalAuth ? createLocalUser() : null,
   );
   const [loading, setLoading] = useState<boolean>(isFirebaseConfigured);
 
@@ -42,6 +46,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return;
     }
+
+    getRedirectResult(auth).catch((err) => {
+      console.error('Google redirect sign-in failed:', err);
+    });
 
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -52,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithEmail = async (email: string, password: string) => {
     if (!isFirebaseConfigured || !auth) {
+      if (!canUseLocalAuth) throw new Error(firebaseSetupError);
       setUser(createLocalUser(email));
       return;
     }
@@ -61,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUpWithEmail = async (email: string, password: string) => {
     if (!isFirebaseConfigured || !auth) {
+      if (!canUseLocalAuth) throw new Error(firebaseSetupError);
       setUser(createLocalUser(email));
       return;
     }
@@ -70,11 +80,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     if (!isFirebaseConfigured || !auth || !googleProvider) {
+      if (!canUseLocalAuth) throw new Error(firebaseSetupError);
       setUser(createLocalUser());
       return;
     }
 
-    await signInWithPopup(auth, googleProvider);
+    await signInWithRedirect(auth, googleProvider);
   };
 
   const signOut = async () => {

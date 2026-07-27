@@ -21,6 +21,9 @@ const getAuthErrorMessage = (err: any) => {
   if (code.includes('user-not-found')) return 'No account exists for that email.';
   if (code.includes('email-already-in-use')) return 'An account already exists for that email.';
   if (code.includes('weak-password')) return 'Use a password with at least 6 characters.';
+  if (code.includes('operation-not-allowed')) return 'Google sign-in is not enabled in Firebase Authentication.';
+  if (code.includes('unauthorized-domain')) return 'This domain is not authorized in Firebase Authentication settings.';
+  if (code.includes('popup-blocked')) return 'Your browser blocked the Google sign-in popup.';
   if (code.includes('popup-closed-by-user')) return 'Google sign-in was closed before it finished.';
   return err?.message || 'Authentication failed. Please try again.';
 };
@@ -78,11 +81,11 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signInWithGoogle();
-      navigate(redirectTo, { replace: true });
     } catch (err: any) {
       setError(getAuthErrorMessage(err));
-    } finally {
       setIsSubmitting(false);
+    } finally {
+      if (import.meta.env.DEV) setIsSubmitting(false);
     }
   };
 
